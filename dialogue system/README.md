@@ -1,0 +1,3 @@
+YEAR: Spring 2022
+SUMMARY:
+This sample of code comes from a discontinued game I was working on named World Without Color. Although I am no longer proud of the efficiency of the code, the reason it is in my portfolio is because I designed the encoding system for a specific context. It is fairly robust and responsive for the intended project. For example, as opposed to simply displaying a string, it allows various character portraits to be displayed and swapped mid-sentence, variable pauses, breaks, different speakers, and so on. All of these functions can be encoded in a single string (if curious look at "How to encode dialogue.txt")

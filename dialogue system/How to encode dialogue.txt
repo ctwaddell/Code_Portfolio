@@ -1,0 +1,41 @@
+TUTORIAL:
+To encode any special event in dialogue, first you need to add a backslash to indicate an event is needed.
+Once the backslash is entered, follow it by a character from the list below to encode this event.
+Note that if you wish to encode multiple events, multiple backslashes are needed.
+For example, to encode a short pause and a portrait change to angry, one would enter "\s\1".
+(Be attentive to spaces before and after uses of dialogue events!)
+
+KEY:
+0 - switch to normal portrait
+1 - switch to angry portrait
+2 - switch to happy portrait
+3 - switch to sad portrait
+4 - switch to surprised portrait
+5 - switch to inquisitive portrait
+6 - switch to depressed portrait
+7 - switch to unsure portrait
+\ - full break in dialogue (input required to resume)
+! - end of dialogue
+s - a 0.5 second pause
+m - a 1 second pause
+p - a 2 second pause
+. - a 1 second ellipse sequence ("...")
+o - switch current speaker to speaker one
+t - switch current speaker to speaker two
+h - switch current speaker to speaker three
+e - adds a newline into the current dialogue
+r - clears the dialogue window
+
+EXAMPLES:
+"And now\.\p\1\s this world shall know pain.\\Almighty Push!\!"
+
+Dialogue between 3 speakers: (initializes with speaker1 and normal portrait)
+"Hello, Iris. I wasn't sure you would be up here.\\\t\4Red?\p\5 Is that really you\.?\\\h\2No.\s What you are seeing right now is all in your head.\!"\
+
+"This is my normal portrait.\\\1This is my angry portrait\\\2This is my happy portrait\\\3This is my sad portrait\.\4This is my surprised portrait\!"
+
+\o\4Red?\s Is that really you?\p\5 What are you doing back here?\\ \t\2Yes Feldspar, it's me.\s I haven't seen you in years and this is the greeting I get?\\ \o\0Sorry, you're right, welcome back.\s But I do need to know why you've returned to Providence. The kingdom's been slowly recovering since you left.\s I hope you don't plan to disrupt that, do you?\\ \t\0No, I don't. I'm not here to stay, I'm just passing though.\\ \o\0Fair enough, just passing though,\s\5 but where is there to go around here?\\ \t\0To the summit of Mount Gilead.\\ \o\4You want to summit the mountain? For what reason could you possibly want to take that risk?\\ \t\0The thing I am searching for is probably up there, and there's only one way to reach it.\\ \o\0Alright, I won't pry further, but be safe. Not many have made that climb before, and even fewer have made it back.\s Do you have the things you need? Ropes and whatnot?\\ \t\0Not yet, I planned to get some and then rest a while before heading out.\\ \o\0I tell you what, go get your rope, but then come stay at my house until you leave.\s I'm glad to see you back here, but others might not be so thrilled-- try to keep a low profile if you can.\s Do you remember where I live?\\ \t\0You're down this road on the northern side of the street. The house with the attached greenhouse, right?\\ \o\0That's right.\s I think your best bet for finding ropes would be Barley's stand on the eastern side of the market circle just north of here\.\\Climbing gear isn't a super common commodity, but if anyone would have it, it would be Barley.\\ \t\0Right, thanks.\s\2I'm glad you were the one to greet me, Feldspar.\s I'll see you soon. \!
+
+\o\4Hello, Red. Today we are demonstrating the functionality of our chat feature.\\\tIs that so? In that case, we should display the variety of its functionality.\\
+For example, I can change my facial expressions dynamically.\1\s\2\s\3\s\4\s\5\s\6\s\\\o\2We can also have three speakers at once\.\\\hHello, I am also a speaker.
+\\We hope this demonstration was interesting to watch!\!
