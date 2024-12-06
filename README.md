@@ -6,4 +6,4 @@ Simple overview:
 - ./colorless shader - HLSL shader written specifically for use in my animations
 - ./custom shell - C based shell emulating the default shell in a computer terminal
 - ./dialogue system - C# dialogue encoding and decoding system for use in one of my games
-- ./simple interactive 3D - faux 3D program written in JavaScript to simulate the planets
+- ./simple interactive 3D - JavaScript faux 3D program to simulate the planets
