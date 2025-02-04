@@ -1,44 +1,43 @@
-YEAR: Fall 2023 - Ongoing
+YEAR: WINTER 2025
 SUMMARY:
-Blay is an independent project for use in a video game I am developing. The puzzle generation algorithms are written here.
+A collection of C++ programs to generate, manipulate, and verify uniquely solvable puzzles for my upcoming Unity solo game project, Blay. Creates a suite of programs for these purposes, accomodating user input and parameters.
 
-In summary, the game has a board constructed of a grid of arbitrary tiles. The tiles can share eachother as neighbors, but not every cell in the grid has to be a tile. Upon the tiles, pieces (called "Blays") are placed. Each Blay has a color and height. Given the following two conditions:
-- Adjacent Blays cannot share the same color
-- Adjacent Blays may not have a height difference greater than 1
-uniquely solvable (only one solution) puzzles can be generated.
+Makefile usage and targets:
+    make all - creates all executables
+    make auto/automatic - creates ./auto
+    make manual - creates ./manual
+    make website - creates ./website
+    make generator - creates ./generator
+    make tester - creates ./tester
+    make dll/dll64 - creates RPG.dll which essentially ./auto in a dll for x86_64 systems (64 bit)
+    make dll32 - creates RPG32.dll for x86 systems (32 bit)
+    make clean - removes all related files and outputs
 
-Based on the aforementioned rules, the algorithms construct a graph where the nodes represent a given Blay, and an edge represents the unswappability of the Blays. In other words, an edge means that swapping the Blays would lead to a contradiction of the rules.
-Once the graph is created, a specified number of Blays will be (attempted) to be removed. To do this, the Bronn-Kerbosch algorithm is used to find the largest clique in the graph, which represents a group of Blays that can all be removed while ensuring a unique solution.
-However, the current algorithm has flaws that periodically result in a non-unique solution. Because of this, a solver algorithm is run afterwards to ensure it is unique before saving it. If this fails, a new puzzle is generated.
+./generator - usage: ./generator
+    Prompts manual input of board shape to generate a complete board pattern. First, specify row number, then column number, and then board shape aligning to the specified rows x columns grid. 0's indicate an empty space and 1's indicate a filled space.
 
+./tester - usage: ./tester
+    Prompts an input of a board string, either with a Blaylist or without. Allows for interaction with the board and other features:
+    a - Add a Blay to a tile
+    r - Remove a Blay from a tile
+    n - Create a new Blay
+    d - Delete a Blay
+    p - Print the Blaylist
+    f - Print the format string of the board and Blaylist
+    s - Swap two Blays
+    m - Print the adjacency matrix of the board
+    k - Run the Bronn-Kerbosch algorithm which finds the max clique size for the current board state
+    c - Complete/solve the current board with the given Blaylist. Print the solution(s)
+    ENTER - Print out board info. Also printed each command
+    h - Help/print a list of commands
+    z - Create a puzzle up to input size
+    x - Create a puzzle up to input size with debug info
 
-TO USE:
+./auto - usage: ./auto rows columns seed
+    Generates a random puzzle constrained by input parameters. By default aims for a puzzle of up to size 10. Prints the board and the solution
 
-First, run make
-There will be various outputs, each section of this covers how to use one if the instructions provided by them don't make sense
+./manual - usage: ./manual
+    Similar to ./auto and ./generator. Prompts a board shape and then generates a random puzzle up to specified input size. Prints the board and the solution
 
-./generator
-This one you enter the dimensions of your board, and then enter your board as 0s and 1s. This will generate a valid board setup and output the string for it.
-
-./solver
-This one you have to give it a valid PUZZLE string (something like, 2,2,B1,V0,O2,E0|Y3... something where it has the |). if you give it a regular string it wont do anything. Once you give it the valid puzzle string, it will brute force solve the puzzle, and tell you how many solutions it found for the given puzzle string.
-
-./tester
-This one is just some stuff to play around and manipulate the board you give it. Primarily used for testing. The commands are:
-a - Add a blay to a tile
-r - Remove a blay from a tile
-n - Create a new blay
-d - Delete a blay
-p - print the list of free blays (kind of redundant? I forgot)
-f - output the format string of the board and freeblays
-s - swap two blays
-m - output the adjacency matrix if you want that for some reason
-k - run the kerbosch algorithm which finds the max clique size in theory for the current board state (you probably need a full board for this one to mean anything)
-c - complete/solve the current board with the given freeblays. It will output the solution
-ENTER - will just print out the info of the board.This is also printed on each command.
-
-./batch
-This one is used to actually generate complete unique puzzles. You enter the board and then the amount of blays you want to remove. Generally I've found 12 or 13 is the current limit for computability within a decent timespan (obviously dependent on the board layout, but worst case scenario is usually a few minutes). The in progress output is in output.txt, and if it finds a valid solution it will append the board to finalpuzzles.txt. I am 99.99% sure these are unique and valid puzzles. Just short of a logical proof.
-
-./automatic
-This one automatically generates a puzzle 
+./website - usage: ./website rows columns
+    Similar to ./auto but is unseeded (seed is based on current time). Outputs a random puzzle (JSON formatted) of size rows x columns to dailyPuzzle.txt

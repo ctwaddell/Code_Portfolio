@@ -1,3 +1,0 @@
-cache the highest solution found so far, so that if the specified amount isn't found in time, return the next highest.
-improve how the maximum clique is calculated to ensure every solution truly is unique.
-deallocate memory properly, right now it crashes.

@@ -30,11 +30,14 @@ class Tile
 
         //ACCESSOR METHODS
         std::string GetTypeName();
-        bool CanSwap(Tile* otherTile);
+        bool CanSwapBi(Tile* otherTile);
+        bool CanSwapMono(Tile* otherTile);
+        bool CanAddBlay(Blay* blay);
 
         //MUTATOR METHODS
         int AddBlay(Blay* blay);
         void AAddBlay(Blay* blay);
+        bool CheckAndAddBlay(Blay* blay);
         Blay* RemoveBlay();
         int AddNeighbor(int index, Tile* toAdd);
         void SetRoot(bool isRoot);

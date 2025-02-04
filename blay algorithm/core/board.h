@@ -5,6 +5,8 @@
 #include "tile.h"
 #include "tileset.h"
 #include "adjmatrix.h"
+#include "adjlist.h"
+#include "cull.h"
 
 #include <iostream>
 #include <iomanip>
@@ -35,6 +37,8 @@ class Board
         int AddBlayToTile(Blay* blay, int tileid);
         void AAddBlayToTile(Blay* blay, int tileid);
         Blay* RemoveBlayFromTile(int tileid);
+        Blay* RemoveBlayIDFromTile(int blayid);
+        bool IsOriginalSolution();
 
         void ParseBoard(char** characterBoard);
         void ParseBoard(std::vector<std::string> blays);
@@ -58,9 +62,13 @@ class Board
         void PrintMaximalCliques(int targetSize);
         std::vector<std::string> FormatMaximalCliques(int targetSize);
         void PrintAdjMatrix();
+        void PrintAdjList();
+        void PrintSortedAdjList();
         std::vector<std::string> Solve();
         static std::vector<std::string> CleanSolutions(std::vector<std::string> solutions);
         static int SolutionSize(std::vector<std::string> puzzleStrings);
         int BoardSize();
         std::string GeneratePuzzle();
+        void FastGeneratePuzzleDebug(int depth);
+        std::vector<int> FastGeneratePuzzle(int depth);
 };

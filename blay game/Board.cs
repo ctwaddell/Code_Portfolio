@@ -26,19 +26,14 @@ public class Board : MonoBehaviour
         EventHandler eventHandler;
 
         [SerializeField] PuzzleSceneUtility puzzleSceneUtility;
-
-        [SerializeField] GameObject tilePrefab;
-        [SerializeField] GameObject indicatorPrefab;
         [SerializeField] public BlaylistManager blaylistManager;
-        [SerializeField] Material rootMaterial;
-        [SerializeField] public GameObject transient;
     #endregion
 
     void Awake()
     {
         FindReferences();
 
-        eventHandler.onPlace += OnPlace;
+        Subscribe();
     }
 
     void FindReferences()
@@ -49,11 +44,12 @@ public class Board : MonoBehaviour
         eventHandler = EventHandler.GetInstance();
     }
 
-    void Start()
-    {   
-        CreateBoard(puzzleHandler.GetPuzzleNumber());
+    void Subscribe()
+    {
+        eventHandler.onPlace += OnPlace;
+        eventHandler.onStartSceneChange += OnStartSceneChange;
     }
-
+    
     void OnPlace()
     {
         moves++;
@@ -61,18 +57,40 @@ public class Board : MonoBehaviour
         CheckBoard();
     }
 
+    void OnStartSceneChange(SceneName sceneName)
+    {
+        ClearBoard();
+    }
+
+    void OnDestroy()
+    {
+        eventHandler.onPlace -= OnPlace;
+        eventHandler.onStartSceneChange -= OnStartSceneChange;
+    }
+
+    void Start()
+    {   
+        CreateBoard(puzzleHandler.GetPuzzleNumber());
+    }
+
     public void CreateBoard(int puzzleID)
     {
         baseString = puzzleHandler.GetPuzzleBase(puzzleID);
         stateString = puzzleHandler.GetPuzzleState(puzzleID);
         solutionString = puzzleHandler.GetPuzzleSolution(puzzleID);
-        //boardString = stateString == "" ? baseString : stateString; //set board to state if it exists else the base string
-        if(stateString.Equals(solutionString))
+
+        if(stateString == "") //if new, start from the base
+        {
+            moves = 0;
+            CreateBoard(baseString);
+        }
+        else if(stateString.Split('|', StringSplitOptions.RemoveEmptyEntries)[0].Equals(solutionString)) //if solved, restart
         {
             stateString = "";
             moves = 0;
-        } //if won, reset the board
-        else
+            CreateBoard(baseString);
+        }
+        else //else, an in progress puzzle
         {
             moves = puzzleHandler.GetMoves();
         }
@@ -80,33 +98,33 @@ public class Board : MonoBehaviour
         CreateBoard(stateString == "" ? baseString : stateString); //if no state, create as base, otherwise as the state
     }
 
-    public void CreateBoard(string inputString)
+    void CreateBoard(string inputString)
     {
         ClearBoard();
 
-        string[] baseBoardAndBlays = baseString.Split('|', StringSplitOptions.RemoveEmptyEntries); //
-        string[] baseBoardBlays = baseBoardAndBlays[0].Split(',', StringSplitOptions.RemoveEmptyEntries);
+        string[] baseBoardAndBlaylist = baseString.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        string[] baseBoard = baseBoardAndBlaylist[0].Split(',', StringSplitOptions.RemoveEmptyEntries);
         
-        string[] boardAndBlays = inputString.Split('|', StringSplitOptions.RemoveEmptyEntries);
-        string[] boardBlays = boardAndBlays[0].Split(',', StringSplitOptions.RemoveEmptyEntries);
+        string[] inputBoardAndBlaylist = inputString.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        string[] inputBoard = inputBoardAndBlaylist[0].Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-        rows = int.Parse(boardBlays[0]);
-        columns = int.Parse(boardBlays[1]);
+        rows = int.Parse(inputBoard[0]);
+        columns = int.Parse(inputBoard[1]);
         tiles = new GameObject[rows, columns];
         
-        string[] baseBlays = new string[baseBoardBlays.Length - 2];
+        string[] rootBlays = new string[baseBoard.Length - 2];
         for(int i = 0; i < tiles.Length; i++)
         {
-            baseBlays[i] = baseBoardBlays[i + 2];
+            rootBlays[i] = baseBoard[i + 2];
         }
 
-        string[] blays = new string[boardBlays.Length - 2];
+        string[] blays = new string[inputBoard.Length - 2];
         for(int i = 0; i < tiles.Length; i++)
         {
-            blays[i] = boardBlays[i + 2];
+            blays[i] = inputBoard[i + 2];
         }
 
-
+        //create physical board
         float columnOffset = ColumnOffset(columns);
         float rowOffset = RowOffset(rows);
         int index = 0;
@@ -118,7 +136,7 @@ public class Board : MonoBehaviour
                 {
                     case('V'):
                     {
-                        tiles[r, c] = puzzleSceneUtility.CreateTile(TileState.VOID, this.gameObject);
+                        tiles[r, c] = puzzleSceneUtility.CreateVoidTile(this.gameObject);
                         tiles[r, c].name = "[" + r + ", " + c + "]";
                         break;
                     }
@@ -134,7 +152,7 @@ public class Board : MonoBehaviour
                     case('G'):
                     case('B'):
                     {
-                        bool isRootBlay = (baseBlays[index][0] == blays[index][0]); //state blays should not be created as roots
+                        bool isRootBlay = (rootBlays[index][0] == blays[index][0]); //state blays should not be created as roots
 
                         tiles[r, c] = puzzleSceneUtility.CreateTile(new Vector3(rowOffset, HEIGHTOFFSET, (columnOffset + (float)c)), this.gameObject);
                         tiles[r, c].name = "[" + r + ", " + c + "]";
@@ -143,38 +161,17 @@ public class Board : MonoBehaviour
                         break;
                     }
                     default:
-                        Debug.Log("Error: Coult not instantiate tile/blay");
+                    {
+                        Debug.LogError("Error: Could not instantiate Tile/Blay");
                         break;
+                    }
                 } 
                 index++;             
             }
             rowOffset += 1.0f; 
         }
 
-        try
-        {
-            string[] baseBlaylist = baseBoardAndBlays[1].Split(',', StringSplitOptions.RemoveEmptyEntries);
-            int baseBlaylistSize = baseBlaylist.Length;
-            string[] blaylistBlays = boardAndBlays[1].Split(',', StringSplitOptions.RemoveEmptyEntries);
-            int blaylistSize = blaylistBlays.Length;
-
-            List<string> blaylistParam = new List<string>();
-            for(int i = 0; i < blaylistSize; i++)
-            {
-                blaylistParam.Add(blaylistBlays[i]);
-            }
-
-            for(int i = 0; i < baseBlaylistSize - blaylistSize; i++)
-            {
-                blaylistParam.Add("E0");
-            }
-
-            blaylistManager.CreateBlaylist(blaylistParam.ToArray());
-        }
-        catch(Exception e) //if the board is solved, this will cause an error so we catch it
-        {
-
-        }
+        blaylistManager.CreateBlaylist(inputBoardAndBlaylist[1]);
     }
 
     public void ClearBoard()

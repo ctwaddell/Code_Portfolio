@@ -59,8 +59,10 @@ std::string Tile::GetTypeName()
     }
 }
 
-bool Tile::CanSwap(Tile* otherTile)
+//this <-> other
+bool Tile::CanSwapBi(Tile* otherTile)
 {
+    if(id == otherTile->id) return true;
     if(type == VOID || otherTile->type == VOID) return false;
     if(type == EMPTY || otherTile->type == EMPTY) return true;
     if(blay->color == otherTile->blay->color && blay->height == otherTile->blay->height) return false;
@@ -80,6 +82,35 @@ bool Tile::CanSwap(Tile* otherTile)
     return true;
 }
 
+//this -> other 
+bool Tile::CanSwapMono(Tile* otherTile)
+{
+    if(id == otherTile->id) return true;
+    if(type == VOID || otherTile->type == VOID) return false;
+    if(type == EMPTY || otherTile->type == EMPTY) return true;
+    if(blay->color == otherTile->blay->color && blay->height == otherTile->blay->height) return false;
+
+    for(int n = 0; n < 4; n++) //This blay with those neighbors
+    {
+        if(otherTile->neighbors[n] == NULL || otherTile->neighbors[n]->type != FILLED || otherTile->neighbors[n]->id == id) continue;
+        if(blay->color == otherTile->neighbors[n]->blay->color) return false;
+        if(std::abs(blay->height - otherTile->neighbors[n]->blay->height) >= 2) return false;
+    }
+    return true;
+}
+
+bool Tile::CanAddBlay(Blay* blay)
+{
+    if(type == VOID || type == FILLED) return false;
+    for(int n = 0; n < 4; n++)
+    {
+        if(neighbors[n] == NULL || neighbors[n]->type == EMPTY) continue;
+        if(neighbors[n]->blay->color == blay->color || (std::abs(blay->height - neighbors[n]->blay->height) >= 2)) return false;
+    }
+    return true;
+}
+
+
 //MUTATOR METHODS
 int Tile::AddBlay(Blay* blay)
 {
@@ -93,6 +124,18 @@ void Tile::AAddBlay(Blay* blay)
 {
     type = FILLED;
     this->blay = blay;
+}
+
+bool Tile::CheckAndAddBlay(Blay* blay)
+{
+    if(type != EMPTY) return false;
+    for(int n = 0; n < 4; n++)
+    {
+        if(neighbors[n] == NULL || neighbors[n]->type == EMPTY) continue;
+        if(neighbors[n]->blay->color == blay->color || (std::abs(blay->height - neighbors[n]->blay->height) >= 2)) return false;
+    }
+    AddBlay(blay);
+    return true;
 }
 
 Blay* Tile::RemoveBlay()
@@ -117,6 +160,7 @@ void Tile::SetRoot(bool isRoot)
     if(blay == NULL || type != FILLED) return;
     blay->SetRoot(isRoot);
 }
+
 
 //STATIC METHODS
 void Tile::ResetID()

@@ -73,7 +73,7 @@ Board::Board(int rows, int columns)
     string = "";
 
     Tile::ResetID();
-    Tile::ResetID();
+    Blay::ResetID();
     
     tiles = new Tile*[rows];
     for(int i = 0; i < rows; i++)
@@ -155,6 +155,34 @@ Blay* Board::RemoveBlayFromTile(int tileid)
     return GetTileByID(tileid)->RemoveBlay();
 }
 
+Blay* Board::RemoveBlayIDFromTile(int blayid)
+{
+    for(int r = 0; r < rows; r++)
+    {
+        for(int c = 0; c < columns; c++)
+        {
+            if(tiles[r][c].type != Tile::FILLED) continue;
+            if(tiles[r][c].blay->id == blayid) return tiles[r][c].RemoveBlay();
+        }
+    }
+    return NULL;
+}
+
+bool Board::IsOriginalSolution()
+{
+    for(int r = 0; r < rows; r++)
+    {
+        for(int c = 0; c < columns; c++)
+        {
+            if(tiles[r][c].type == Tile::VOID) continue;
+            if(tiles[r][c].type == Tile::EMPTY) return false;
+            if(tiles[r][c].id != tiles[r][c].blay->id) return false; //if the ids aren't the same, its a different board
+        }
+    }
+    return true;
+}
+
+//with charboard
 void Board::ParseBoard(char** characterBoard) //ONLY USED FOR EMPTY BOARD/GENERATION!
 {
     for(int r = 0; r < rows; r++)
@@ -165,8 +193,10 @@ void Board::ParseBoard(char** characterBoard) //ONLY USED FOR EMPTY BOARD/GENERA
             else tiles[r][c].type = Tile::EMPTY;
         }
     }
+    ParseNeighbors();
 }
 
+//with tokens
 void Board::ParseBoard(std::vector<std::string> blays)
 {
     size = 0;
@@ -225,40 +255,7 @@ void Board::ParseNeighbors()
 void Board::Generate(int seed)
 {
     srand(seed);
-    for(int r = 0; r < rows; r++)
-    {
-        for(int c = 0; c < columns; c++)
-        {
-            //Generate valid colors
-            std::vector<Blay::Color> validColors = {Blay::RED, Blay::ORANGE, Blay::YELLOW, Blay::GREEN, Blay::BLUE};
-            for(int i = 0; i < 4; i++)
-            {
-                if(tiles[r][c].neighbors[i] == NULL || tiles[r][c].neighbors[i]->type != Tile::FILLED) continue;
-                for(auto j = 0u; j < validColors.size();)
-                {
-                    if(validColors[j] == tiles[r][c].neighbors[i]->blay->color) validColors.erase(validColors.begin() + j);
-                    else j++;
-                }
-            }
-
-            //Generate valid heights
-            std::vector<int> validHeights;
-            bool hasOne = false;
-            bool hasThree = false;
-            for(int i = 0; i < 4; i++)
-            {
-                if(tiles[r][c].neighbors[i] == NULL || tiles[r][c].neighbors[i]->type != Tile::FILLED) continue; //redundant technically
-                if(tiles[r][c].neighbors[i]->blay->height == 1) hasOne = true;
-                if(tiles[r][c].neighbors[i]->blay->height == 3) hasThree = true;
-            }
-            if(hasOne && hasThree) validHeights = {2};
-            else if(hasOne && !hasThree) validHeights = {1, 2};
-            else if(!hasOne && hasThree) validHeights = {2, 3};
-            else validHeights = {1, 2, 3};
-
-            tiles[r][c].AddBlay(new Blay(validColors[rand() % validColors.size()], validHeights[rand() % validHeights.size()], false));
-        }
-    }
+    Generate();
 }
 
 void Board::Generate()
@@ -267,12 +264,13 @@ void Board::Generate()
     {
         for(int c = 0; c < columns; c++)
         {
+            if(tiles[r][c].type == Tile::VOID || tiles[r][c].type == Tile::FILLED) continue;
             //Generate valid colors
             std::vector<Blay::Color> validColors = {Blay::RED, Blay::ORANGE, Blay::YELLOW, Blay::GREEN, Blay::BLUE};
             for(int i = 0; i < 4; i++)
             {
                 if(tiles[r][c].neighbors[i] == NULL || tiles[r][c].neighbors[i]->type != Tile::FILLED) continue;
-                for(auto j = 0u; j < validColors.size();)
+                for(int j = 0; j < (int)validColors.size();)
                 {
                     if(validColors[j] == tiles[r][c].neighbors[i]->blay->color) validColors.erase(validColors.begin() + j);
                     else j++;
@@ -293,14 +291,8 @@ void Board::Generate()
             else if(hasOne && !hasThree) validHeights = {1, 2};
             else if(!hasOne && hasThree) validHeights = {2, 3};
             else validHeights = {1, 2, 3};
-
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            int lowerBound = 0;
-            int upperBound = 999;
-            std::uniform_int_distribution<> distrib(lowerBound, upperBound);
-            int randomNumber = distrib(gen);
-            tiles[r][c].AddBlay(new Blay(validColors[randomNumber % validColors.size()], validHeights[randomNumber % validHeights.size()], false));
+            
+            tiles[r][c].AddBlay(new Blay(validColors[rand() % validColors.size()], validHeights[rand() % validHeights.size()], false));
         }
     }
 }
@@ -548,8 +540,9 @@ std::string Board::Format()
     if(freeBlays->blaylist.size() > 0)
     {
         ss << '|';
-        for(int i = 0; i < freeBlays->size(); i++)
+        for(int i = 0; i < (int)freeBlays->size(); i++)
         {
+            if(freeBlays->blaylist[i] == NULL) continue;
             ss << freeBlays->blaylist[i]->GetColorName()[0] << freeBlays->blaylist[i]->height << ",";
         }
     }
@@ -617,6 +610,19 @@ void Board::PrintAdjMatrix()
     adjmatrix.Print();
 }
 
+void Board::PrintAdjList()
+{
+    AdjList adjlist(this);
+    adjlist.Print();
+}
+
+void Board::PrintSortedAdjList()
+{
+    AdjList adjlist(this);
+    adjlist.Sort();
+    adjlist.Print();
+}
+
 void Board::PrintMaximalCliques(int targetSize)
 {
     AdjMatrix adjmatrix(this);
@@ -667,6 +673,8 @@ int Board::BoardSize()
     return size;
 }
 
+//returns a vector of strings representing the solutions found of the given targetsize
+//note solutions arent guaranteed to be unique as of yet.
 std::vector<std::string> Board::FormatMaximalCliques(int targetSize)
 {
     std::vector<std::string> returnVector;
@@ -704,4 +712,18 @@ std::vector<std::string> Board::FormatMaximalCliques(int targetSize)
     }
 
     return returnVector;
+}
+
+void Board::FastGeneratePuzzleDebug(int depth)
+{
+    Cull cull = Cull(this);
+    
+    cull.StartRecursionDebug(depth);
+}
+
+std::vector<int> Board::FastGeneratePuzzle(int depth)
+{
+    Cull cull = Cull(this);
+    
+    return cull.StartRecursion(depth);
 }

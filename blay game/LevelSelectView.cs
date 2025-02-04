@@ -9,27 +9,27 @@ public class LevelSelectView : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     public int currentLevel;
     public int numPuzzles;
     public bool isMoving;
-    public int rightMarginWidth;
-    public int buttonWidth;
-    public int spacingWidth;
+
+    int BUTTONWIDTH = 200; //LevelSelectButton prefab's width
+    int EMPTYWIDTH = 900; //EmptyLevelButton prefab's width
+    int SPACINGWIDTH = 150; //Content's HorizontalLayoutGroup's spacing
 
     Coroutine scrollCoroutine;
-    public AnimationCurve moveToCurve;
 
     bool mouseDown;
 
     #region References
         [SerializeField] LevelSelectMenuManager levelSelectMenuManager;
         [SerializeField] RectTransform contentRectTransform;
+        [SerializeField] RectTransform viewportRectTransform;
         [SerializeField] ScrollRect scrollRect;
-        [SerializeField] RectTransform viewRectTransform;
     #endregion
 
     void Update()
     {
         if(Input.GetMouseButtonDown(0))
         {
-            if(RectTransformUtility.RectangleContainsScreenPoint(viewRectTransform, Input.mousePosition))
+            if(RectTransformUtility.RectangleContainsScreenPoint(viewportRectTransform, Input.mousePosition))
             {
                 mouseDown = true;
             }
@@ -61,7 +61,8 @@ public class LevelSelectView : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
     public int Recalculate()
     {
-        currentLevel = (int)((Mathf.Abs(contentRectTransform.anchoredPosition.x) - rightMarginWidth - (spacingWidth / 2)) / (buttonWidth + spacingWidth)) + 1;
+        currentLevel = (int)(-contentRectTransform.anchoredPosition.x + ((BUTTONWIDTH + viewportRectTransform.rect.width) / 2) - EMPTYWIDTH  + SPACINGWIDTH) / (SPACINGWIDTH + BUTTONWIDTH); 
+
         if(currentLevel < 1) currentLevel = 1;
         if(currentLevel > numPuzzles) currentLevel = numPuzzles;
         return currentLevel;
@@ -84,24 +85,24 @@ public class LevelSelectView : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     public void SnapTo()
     {
         scrollRect.StopMovement();
-        StartCoroutine(MoveTo(new Vector2(-GetSnapPos(currentLevel), 150.0f)));
+        StartCoroutine(MoveTo(new Vector2(GetSnapPos(currentLevel), 0)));
     }    
 
     public void SnapTo(int index)
     {
         scrollRect.StopMovement();
-        StartCoroutine(MoveTo(new Vector2(-GetSnapPos(index), 150.0f)));
+        StartCoroutine(MoveTo(new Vector2(GetSnapPos(index), 0)));
     }
 
     public void SnapToInstant(int index)
     {
         scrollRect.StopMovement();
-        contentRectTransform.anchoredPosition = new Vector2(-GetSnapPos(index), 150.0f);
+        contentRectTransform.anchoredPosition = new Vector2(GetSnapPos(index), 0);
     }
 
     float GetSnapPos(int index)
     {
-        return (((index) * (buttonWidth + spacingWidth)) + rightMarginWidth) - 100;
+        return -(EMPTYWIDTH + index * (SPACINGWIDTH + BUTTONWIDTH) - (viewportRectTransform.rect.width / 2) - (BUTTONWIDTH / 2));
     }
 
     IEnumerator MoveTo(Vector2 targetPosition)
@@ -111,6 +112,7 @@ public class LevelSelectView : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
         float time = 0.0f;
         float DURATION = AnimationDuration.LevelSelectSnap();
+        AnimationCurve moveToCurve = AnimationCurves.log;
         while(time < DURATION)
         {
             float t = time / DURATION;

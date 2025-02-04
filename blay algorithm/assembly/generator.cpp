@@ -18,21 +18,21 @@ int main(int argc, char** argv)
 
     while(1)
     {
-        std::cout << "How wide of the board?\n";
-        std::getline(std::cin, input);
-        if((columns = stoi(input)) == 0 || columns < 0) continue;
-        break;
-    }
-
-    while(1)
-    {
-        std::cout << "How tall of the board?\n";
+        std::cout << "How tall of a board?\n";
         std::getline(std::cin, input);
         if((rows = stoi(input)) == 0 || rows < 0) continue;
         break;
     }
 
-    std::cout << "Enter your board:\n";
+    while(1)
+    {
+        std::cout << "How wide of a board?\n";
+        std::getline(std::cin, input);
+        if((columns = stoi(input)) == 0 || columns < 0) continue;
+        break;
+    }
+
+    std::cout << "Enter the board shape:\n";
 
     char** characterBoard = new char*[rows];
     for(int r = 0; r < rows; r++)

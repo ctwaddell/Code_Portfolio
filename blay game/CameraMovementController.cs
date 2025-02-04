@@ -9,6 +9,7 @@ public class CameraMovementController : MonoBehaviour
     public const float DISTANCE = 14.142f;
     public const float STARTTHETA = 45;
     public const float STARTPHI = 60;
+    Vector3 OFFSET = new Vector3(2.0f, 0.0f, 2.0f);
     Vector3 FOCUS = new Vector3(0.0f, 0.6f, 0.0f);
     public float theta = 45; //starting offset, "front"
     public float phi = 60; //starting offtset, "down"
@@ -19,6 +20,7 @@ public class CameraMovementController : MonoBehaviour
     Coroutine currentRoutine;
 
     #region References
+        CameraHandler cameraHandler;
         EventHandler eventHandler;
         [SerializeField] AnimationCurve positionCurve;
         [SerializeField] AnimationCurve upCurve;
@@ -37,6 +39,7 @@ public class CameraMovementController : MonoBehaviour
 
     void FindReferences()
     {
+        cameraHandler = CameraHandler.GetInstance();
         eventHandler = EventHandler.GetInstance();
     }
 
@@ -307,7 +310,13 @@ public class CameraMovementController : MonoBehaviour
     {
         float thetaRad = theta * Mathf.Deg2Rad;
         float phiRad = phi * Mathf.Deg2Rad;
-        Vector3 returnVec = new Vector3(Mathf.Cos(thetaRad) * Mathf.Sin(phiRad), Mathf.Cos(phiRad), Mathf.Sin(thetaRad) * Mathf.Sin(phiRad));
+        Vector3 returnVec = new Vector3
+        (
+            Mathf.Cos(thetaRad) * Mathf.Sin(phiRad), 
+            Mathf.Cos(phiRad), 
+            Mathf.Sin(thetaRad) * Mathf.Sin(phiRad)
+        );
+
         returnVec *= DISTANCE;
         return returnVec;
     }
@@ -337,7 +346,7 @@ public class CameraMovementController : MonoBehaviour
         phi = STARTPHI;
         SetState(theta, phi);
 
-        Vector3 startPos = new Vector3(transform.position.x, transform.position.y + 10.0f, transform.position.z);
+        Vector3 startPos = new Vector3(transform.localPosition.x, transform.localPosition.y + 10.0f, transform.localPosition.z);
         Vector3 endPos = transform.position;
 
         transform.position = startPos;
@@ -357,6 +366,39 @@ public class CameraMovementController : MonoBehaviour
         transform.position = endPos;
 
         canMove = true;
+    }
+
+    public IEnumerator ExitAnimation()
+    {
+        if(state == CameraState.UP)
+        {
+            yield return AnimateDown(theta);
+        }
+
+        yield return cameraHandler.cameraRaycastController.ExitAnimation();
+
+        canMove = false;
+
+        Vector3 startPos = transform.localPosition;
+        Vector3 endPos = new Vector3(transform.localPosition.x, transform.localPosition.y - 10.0f, transform.localPosition.z);
+
+        transform.position = startPos;
+
+        float time = 0.0f;
+        float DURATION = AnimationDuration.CameraIntroMovement();
+        while(time < DURATION)
+        {
+            float t = time / DURATION;
+            Vector3 currentPos = Vector3.Lerp(startPos, endPos, introCurve.Evaluate(t));
+            transform.position = currentPos;
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = endPos;
+
+        canMove = false;
     }
 }
 

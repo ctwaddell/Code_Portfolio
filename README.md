@@ -3,7 +3,7 @@ This repository is a collection of some of my code for use in job applications o
 Simple overview:
 - ./blay algorithm - C++ programs and algorithms to generate puzzles for one of my games
 - ./blay game - C#/Unity components for one of my games
-- ./colorless shader - HLSL shader written specifically for use in my animations
+- ./colorless shader - HLSL shader written specifically for use in my 3D animations
 - ./custom shell - C based shell emulating the default shell in a computer terminal
 - ./dialogue system - C# dialogue encoding and decoding system for use in one of my games
-- ./simple interactive 3D - JavaScript faux 3D program to simulate the planets
+- ./simple interactive 3D - JavaScript simulated 3D program displaying a solar system
